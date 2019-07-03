@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Jogo da Velha</title>
+</head>
+<body>
+    <script>
+        var serverUrl = 'ws://localhost:8080';
+        var websocket = new WebSocket(serverUrl);
+        var player = "()";
+
+        websocket.onopen = function () {
+            console.log("Conexão iniciada");
+            websocket.send("init");
+        }
+
+        websocket.onmessage = function (message) {
+            
+            if(message.data.startsWith("board")){
+                document.getElementById("title").innerText = "TIC-TAC-TOE"+" ( "+player+" )";
+
+                var b = JSON.parse(message.data.slice(6, message.data.lenght));
+                document.getElementById("0x0").innerText = b[0][0];
+                document.getElementById("0x1").innerText = b[0][1];
+                document.getElementById("0x2").innerText = b[0][2];
+                document.getElementById("1x0").innerText = b[1][0];
+                document.getElementById("1x1").innerText = b[1][1];
+                document.getElementById("1x2").innerText = b[1][2];
+                document.getElementById("2x0").innerText = b[2][0];
+                document.getElementById("2x1").innerText = b[2][1];
+                document.getElementById("2x2").innerText = b[2][2];
+            }
+
+            if(message.data.startsWith("disab")){
+                var i = parseInt(message.data.charAt(6));
+                var j = parseInt(message.data.charAt(8));
+
+                document.getElementById(i+"x"+j).disabled = true;
+            }
+
+            if(message.data.startsWith("eALL")){
+                for(i=0;i<3;i++){
+                    for(j=0;j<3;j++){
+                        document.getElementById(i+"x"+j).disabled = false;
+                    }
+                }
+            }
+
+            if(message.data.startsWith("dALL")){
+                for(i=0;i<3;i++){
+                    for(j=0;j<3;j++){
+                        document.getElementById(i+"x"+j).disabled = true;
+                    }
+                }
+            }
+
+            if(message.data.startsWith("SYM")){
+                player = message.data.charAt(4);
+            }
+
+            if(message.data.startsWith("draw")){
+                alert("FOI UM EMPATE!");
+            }
+
+            if(message.data.startsWith("win")){
+                var who= message.data.charAt(4);
+
+                for(i=0;i<3;i++){
+                    for(j=0;j<3;j++){
+                        document.getElementById(i+"x"+j).disabled = true;
+                    }
+                }
+
+                alert("O JOGADOR " + who + " VENCEU!");
+            }
+        }
+
+        function play(i,j){
+            websocket.send("play|"+i+"|"+j);
+            websocket.send("disab|"+i+"|"+j);
+        }
+    </script>
+    <h1 id="title">O SERVIDOR ESTÁ CHEIO!</h1>
+
+    <table>
+        <tr>
+            <td><button id="0x0" onclick="play(0,0)" value="" ></button> </td>
+            <td class="vert"><button id="0x1" onclick="play(0,1)" value="" ></button></td>
+            <td><button id="0x2" onclick="play(0,2)" value="" ></button></td>
+        </tr>
+        <tr>
+            <td class="hori"><button id="1x0" onclick="play(1,0)" value="" ></button></td>
+            <td class="vert hori"><button id="1x1" onclick="play(1,1)" value="" ></button></td>
+            <td class="hori"><button id="1x2" onclick="play(1,2)" value="" ></button></td>
+        </tr>
+        <tr>
+            <td><button id="2x0" onclick="play(2,0)" value="" ></button></td>
+            <td class="vert"><button id="2x1" onclick="play(2,1)" value="" ></button></td>
+            <td><button id="2x2" onclick="play(2,2)" value="" ></button></td>
+        </tr>
+  </table>
+
+</body>
+</html> 
